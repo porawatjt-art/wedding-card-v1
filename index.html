@@ -745,7 +745,7 @@
   // Floral arch — two side pillars + curved top via torus
   function makeArchPillar(x){
     const g = new THREE.Group();
-    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 1, 12), new THREE.MeshStandardMaterial({color:0x3a2a18, roughness:0.85}));
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 8, 12), new THREE.MeshStandardMaterial({color:0x3a2a18, roughness:0.85}));
     trunk.position.y = 4; g.add(trunk);
     // flower cluster top + cascading down
     for(let i=0;i<26;i++){
