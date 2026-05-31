@@ -1,0 +1,1128 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+<title>Top & Dream · 12·12·27</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Sarabun:wght@300;400;500;600;700&family=Dancing+Script:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gold:#c9a84c;
+    --gold-light:#ffd080;
+    --ivory:#fdfaf6;
+    --blush:#e8b4b8;
+    --amber:#d4924a;
+    --forest:#1a2f1a;
+    --charcoal:#1a1a1a;
+    --dark-bg:#0d0a06;
+    --navy:#0d1b2a;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--dark-bg);color:var(--ivory);font-family:'Cormorant Garamond',serif;overflow-x:hidden}
+  body{min-height:100vh}
+  canvas{display:block}
+
+  /* 3D canvas fixed in background */
+  #scene{position:fixed;inset:0;z-index:1;background:var(--dark-bg)}
+
+  /* Atmospheric layers */
+  .colorgrade{position:fixed;inset:0;pointer-events:none;z-index:4;background:rgba(212,146,74,.04);mix-blend-mode:multiply}
+  .vignette{position:fixed;inset:0;pointer-events:none;z-index:5;background:radial-gradient(ellipse at center,transparent 40%,rgba(10,6,2,.55) 100%);transition:opacity 1.2s ease}
+  .vignette.lifted{opacity:.55}
+  .grain{position:fixed;inset:0;pointer-events:none;z-index:6;opacity:.06;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
+
+  /* ─────────── Phase 1: Door overlay ─────────── */
+  .door-overlay{
+    position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:0 24px;text-align:center;transition:opacity 1.2s ease;cursor:pointer;
+  }
+  .door-overlay.hide{opacity:0;pointer-events:none}
+  .invite-eyebrow{
+    font-family:'Dancing Script',cursive;color:var(--gold);letter-spacing:.04em;font-size:22px;opacity:0;
+    animation:fadeUp 1.6s .4s ease forwards;
+  }
+  .invite-line{
+    font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--ivory);
+    font-size:clamp(20px,2.6vw,30px);font-weight:300;letter-spacing:.06em;margin-top:14px;opacity:0;
+    animation:fadeUp 1.6s .9s ease forwards;text-shadow:0 0 30px rgba(201,168,76,.35);
+  }
+  .invite-monogram{
+    font-family:'Cormorant Garamond',serif;color:var(--ivory);
+    font-size:clamp(56px,9vw,108px);font-weight:300;letter-spacing:.16em;margin-top:32px;opacity:0;
+    animation:fadeUp 1.6s 1.4s ease forwards;text-shadow:0 0 40px rgba(255,208,128,.4);
+  }
+  .invite-monogram .amp{color:var(--gold);font-family:'Cormorant Garamond',serif;font-style:italic;margin:0 .18em}
+  .invite-date{
+    font-family:'Cormorant Garamond',serif;color:var(--gold);letter-spacing:.4em;
+    font-size:clamp(13px,1.4vw,16px);margin-top:18px;opacity:0;
+    animation:fadeUp 1.6s 1.8s ease forwards;
+  }
+  .invite-divider{
+    display:flex;align-items:center;gap:14px;margin-top:24px;opacity:0;
+    animation:fadeUp 1.6s 2.2s ease forwards;
+  }
+  .invite-divider .line{width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+  .invite-divider svg{color:var(--gold)}
+  .invite-cta{
+    margin-top:48px;font-family:'Sarabun',sans-serif;color:var(--gold-light);font-weight:300;letter-spacing:.18em;
+    font-size:14px;opacity:0;animation:fadeIn 1.4s 2.6s ease forwards,pulseSoft 2.6s 3.6s ease-in-out infinite;
+  }
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:.95}}
+  @keyframes pulseSoft{0%,100%{opacity:.55;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+
+  /* ─────────── Fixed UI buttons ─────────── */
+  .ui-btn{
+    position:fixed;width:48px;height:48px;border-radius:50%;
+    background:rgba(20,14,6,.45);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border:1px solid rgba(201,168,76,.45);color:var(--gold-light);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    z-index:30;font-size:18px;transition:transform .25s ease,background .25s ease;
+    box-shadow:0 4px 20px rgba(0,0,0,.4),inset 0 0 12px rgba(255,208,128,.06);
+  }
+  .ui-btn:hover{transform:scale(1.06);background:rgba(40,28,12,.6)}
+  .ui-music{top:22px;right:22px}
+  .ui-lang{top:22px;left:22px;width:auto;height:36px;padding:0 14px;border-radius:18px;font-family:'Sarabun',sans-serif;font-size:12px;letter-spacing:.18em}
+  .ui-top{bottom:24px;right:22px;opacity:0;pointer-events:none;transition:opacity .35s ease,transform .25s ease}
+  .ui-top.show{opacity:1;pointer-events:auto}
+
+  /* ─────────── Scroll content wrapper ─────────── */
+  .content{position:relative;z-index:10;pointer-events:none}
+  .content .section{pointer-events:auto}
+  .spacer{height:100vh;pointer-events:none}
+
+  .section{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:80px 22px;
+    position:relative;
+  }
+
+  /* Reveal animation */
+  .reveal{opacity:0;transform:translateY(40px);transition:opacity 1.1s cubic-bezier(.2,.7,.2,1),transform 1.1s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+  .reveal.d1{transition-delay:.15s}.reveal.d2{transition-delay:.3s}.reveal.d3{transition-delay:.45s}.reveal.d4{transition-delay:.6s}.reveal.d5{transition-delay:.75s}
+
+  /* ─────── Section: Hero ─────── */
+  .hero-card{max-width:780px;width:100%;text-align:center}
+  .ornament{display:flex;align-items:center;justify-content:center;gap:18px;color:var(--gold);margin:0 auto}
+  .ornament .h{width:min(180px,30vw);height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+  .ornament svg{width:24px;height:24px;flex:none}
+  .hero-eyebrow{font-family:'Dancing Script',cursive;color:var(--gold);font-size:clamp(22px,2.6vw,30px);margin:18px 0 6px}
+  .names-th{font-family:'Sarabun',sans-serif;color:var(--ivory);font-weight:300;font-size:clamp(22px,3.2vw,34px);letter-spacing:.04em;margin:14px 0 6px;text-shadow:0 0 24px rgba(255,208,128,.18)}
+  .names-en{font-family:'Cormorant Garamond',serif;color:var(--ivory);font-weight:300;font-size:clamp(40px,7.2vw,84px);line-height:1.05;letter-spacing:.02em;margin:8px 0;text-shadow:0 0 32px rgba(201,168,76,.28)}
+  .names-en .amp{color:var(--gold);font-style:italic;font-weight:400;margin:0 .12em}
+  .hero-sub{font-family:'Sarabun',sans-serif;font-weight:300;color:rgba(253,250,246,.85);font-size:clamp(15px,1.6vw,18px);margin-top:16px;letter-spacing:.06em}
+  .date-badge{
+    display:inline-flex;align-items:center;gap:18px;margin-top:34px;padding:18px 28px;border-radius:999px;
+    background:rgba(20,14,6,.35);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border:1px solid rgba(201,168,76,.45);box-shadow:0 6px 32px rgba(0,0,0,.45),inset 0 0 18px rgba(255,208,128,.06);
+  }
+  .date-badge .num{font-family:'Cormorant Garamond',serif;color:var(--gold-light);font-size:clamp(22px,2.6vw,30px);letter-spacing:.16em}
+  .date-badge .dot{width:5px;height:5px;border-radius:50%;background:var(--gold);opacity:.7}
+  .date-badge .lbl{font-family:'Sarabun',sans-serif;color:var(--ivory);font-size:12px;letter-spacing:.32em;text-transform:uppercase;opacity:.85}
+
+  /* ─────── Section: Countdown ─────── */
+  .count-wrap{max-width:880px;width:100%;text-align:center}
+  .count-title{font-family:'Sarabun',sans-serif;color:var(--ivory);font-weight:300;font-size:clamp(18px,2.2vw,24px);letter-spacing:.14em;margin-bottom:8px}
+  .count-sub{font-family:'Dancing Script',cursive;color:var(--gold);font-size:clamp(22px,2.6vw,28px);margin-bottom:42px}
+  .count-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  @media (max-width:520px){.count-grid{gap:10px}}
+  .cell{
+    position:relative;padding:24px 8px 18px;border-radius:14px;
+    background:linear-gradient(180deg,rgba(13,27,42,.85),rgba(8,16,26,.9));
+    border:1px solid rgba(201,168,76,.45);
+    box-shadow:0 10px 40px rgba(0,0,0,.55),inset 0 0 26px rgba(255,208,128,.06);
+    overflow:hidden;
+  }
+  .cell::before{
+    content:"";position:absolute;left:8px;right:8px;top:50%;height:1px;background:rgba(201,168,76,.25);
+  }
+  .cell .n{font-family:'Cormorant Garamond',serif;color:var(--gold-light);font-weight:300;font-size:clamp(36px,6vw,68px);line-height:1;letter-spacing:.02em;display:block;
+    transition:transform .35s cubic-bezier(.2,.7,.2,1),opacity .35s ease;text-shadow:0 0 18px rgba(255,208,128,.35)}
+  .cell .n.flip{transform:translateY(-10px) rotateX(60deg);opacity:0}
+  .cell .l{display:block;margin-top:10px;font-family:'Sarabun',sans-serif;color:var(--ivory);opacity:.7;font-size:11px;letter-spacing:.32em;text-transform:uppercase}
+
+  /* ─────── Section: Venue ─────── */
+  .venue-card{
+    max-width:760px;width:100%;padding:48px 36px;border-radius:22px;text-align:center;
+    background:rgba(26,18,8,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border:1px solid rgba(201,168,76,.45);
+    box-shadow:0 18px 60px rgba(0,0,0,.55),inset 0 0 30px rgba(255,208,128,.05);
+  }
+  .venue-card h3{font-family:'Sarabun',sans-serif;color:var(--ivory);font-weight:300;font-size:clamp(18px,2.2vw,22px);letter-spacing:.14em;margin:0 0 8px}
+  .venue-card .v-en{font-family:'Cormorant Garamond',serif;font-weight:300;color:var(--gold-light);font-size:clamp(30px,4.4vw,46px);letter-spacing:.04em;margin:18px 0 8px;text-shadow:0 0 22px rgba(201,168,76,.3)}
+  .venue-card .v-th{font-family:'Sarabun',sans-serif;color:var(--ivory);font-weight:400;font-size:clamp(15px,1.7vw,18px);letter-spacing:.04em;margin:0 0 22px}
+  .venue-card .v-addr{font-family:'Sarabun',sans-serif;font-weight:300;color:rgba(253,250,246,.78);font-size:14px;line-height:1.8;max-width:520px;margin:0 auto 22px}
+  .venue-card .v-time{display:inline-flex;align-items:center;gap:14px;font-family:'Sarabun',sans-serif;color:var(--gold);font-size:14px;letter-spacing:.18em;margin:6px 0 28px;padding:10px 22px;border:1px solid rgba(201,168,76,.4);border-radius:999px}
+  .venue-card .v-time .dot{width:4px;height:4px;border-radius:50%;background:var(--gold)}
+  .map-btn{
+    display:inline-flex;align-items:center;gap:10px;padding:14px 28px;border-radius:999px;
+    background:linear-gradient(180deg,#d8b65a,#b8932f);color:#1a1208;text-decoration:none;
+    font-family:'Sarabun',sans-serif;font-weight:600;font-size:14px;letter-spacing:.1em;
+    border:1px solid rgba(255,229,160,.6);box-shadow:0 10px 30px rgba(201,168,76,.35),inset 0 1px 0 rgba(255,255,255,.4);
+    transition:transform .25s ease,box-shadow .25s ease;
+  }
+  .map-btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(201,168,76,.5)}
+
+  /* ─────── Section: RSVP ─────── */
+  .rsvp-bg{
+    position:absolute;inset:0;z-index:-1;
+    background:linear-gradient(180deg,rgba(26,47,26,0) 0%,rgba(26,47,26,.55) 25%,rgba(26,47,26,.65) 75%,rgba(26,47,26,0) 100%);
+    pointer-events:none;
+  }
+  .rsvp-card{
+    max-width:560px;width:100%;padding:48px 36px;border-radius:22px;text-align:center;
+    background:rgba(13,21,12,.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border:1px solid rgba(201,168,76,.4);
+    box-shadow:0 18px 60px rgba(0,0,0,.55);
+  }
+  .rsvp-card h3{font-family:'Sarabun',sans-serif;color:var(--ivory);font-weight:400;font-size:clamp(20px,2.4vw,26px);letter-spacing:.1em;margin:0 0 6px}
+  .rsvp-card .sub{font-family:'Sarabun',sans-serif;color:rgba(253,250,246,.7);font-size:14px;font-weight:300;margin-bottom:28px}
+  .field{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:16px;text-align:left}
+  .field label{font-family:'Sarabun',sans-serif;color:var(--gold);font-size:12px;letter-spacing:.18em;text-transform:uppercase}
+  .field input,.field textarea{
+    width:100%;background:rgba(10,8,4,.55);border:1px solid rgba(201,168,76,.35);border-radius:10px;
+    color:var(--ivory);font-family:'Sarabun',sans-serif;font-size:15px;padding:12px 14px;outline:none;
+    transition:border .2s ease,box-shadow .2s ease;
+  }
+  .field input:focus,.field textarea:focus{border-color:var(--gold-light);box-shadow:0 0 0 3px rgba(255,208,128,.12)}
+  .field textarea{min-height:80px;resize:vertical}
+  .submit-btn{
+    width:100%;margin-top:14px;padding:16px 22px;border:none;border-radius:14px;cursor:pointer;
+    background:linear-gradient(180deg,#d8b65a,#b8932f);color:#1a1208;
+    font-family:'Sarabun',sans-serif;font-weight:700;font-size:15px;letter-spacing:.16em;
+    box-shadow:0 0 0 1px rgba(255,229,160,.5),0 14px 40px rgba(201,168,76,.4);
+    animation:btnGlow 2.4s ease-in-out infinite;
+  }
+  @keyframes btnGlow{0%,100%{box-shadow:0 0 0 1px rgba(255,229,160,.5),0 14px 40px rgba(201,168,76,.4)}50%{box-shadow:0 0 0 1px rgba(255,229,160,.7),0 14px 60px rgba(201,168,76,.7)}}
+
+  /* ─────── Footer ─────── */
+  .footer{
+    text-align:center;padding:80px 22px 90px;color:rgba(253,250,246,.75)
+  }
+  .footer .monogram{font-family:'Cormorant Garamond',serif;color:var(--gold-light);font-size:clamp(36px,5vw,52px);letter-spacing:.18em;font-weight:300}
+  .footer .monogram .amp{color:var(--gold);font-style:italic}
+  .footer .names{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:clamp(20px,2.4vw,26px);margin:10px 0 6px}
+  .footer .meta{font-family:'Sarabun',sans-serif;font-size:13px;letter-spacing:.12em;color:rgba(253,250,246,.6)}
+  .save-btn{
+    margin-top:28px;padding:12px 22px;border-radius:999px;cursor:pointer;
+    background:transparent;color:var(--gold-light);border:1px solid rgba(201,168,76,.5);
+    font-family:'Sarabun',sans-serif;font-size:13px;letter-spacing:.18em;
+  }
+  .save-btn:hover{background:rgba(201,168,76,.1)}
+  .footer .heart{margin-top:32px;color:var(--gold);font-family:'Dancing Script',cursive;font-size:22px}
+
+  /* hide overflow util */
+  .visually-hidden{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+
+<!-- Fixed 3D scene -->
+<canvas id="scene"></canvas>
+<div class="colorgrade"></div>
+<div class="vignette" id="vignette"></div>
+<div class="grain"></div>
+
+<!-- Phase 1 door overlay -->
+<div class="door-overlay" id="doorOverlay">
+  <div class="invite-eyebrow">~ The Grand Hall ~</div>
+  <div class="invite-line">You are cordially invited</div>
+  <div class="invite-monogram">T<span class="amp">&amp;</span>D</div>
+  <div class="invite-date">12 · 12 · 27</div>
+  <div class="invite-divider" aria-hidden="true">
+    <span class="line"></span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"/></svg>
+    <span class="line"></span>
+  </div>
+  <div class="invite-cta">✦ &nbsp;แตะเพื่อเข้าสู่งาน&nbsp; ✦</div>
+</div>
+
+<!-- Fixed UI -->
+<button class="ui-btn ui-music" id="musicBtn" title="Music">♪</button>
+<button class="ui-btn ui-top" id="topBtn" title="กลับด้านบน">↑</button>
+
+<audio id="bgAudio" loop preload="none">
+  <!-- music stub: user can wire actual file later -->
+</audio>
+
+<!-- Scroll content -->
+<div class="content">
+  <div class="spacer" aria-hidden="true"></div>
+
+  <!-- Section 1: Hero -->
+  <section class="section" id="sec-hero">
+    <div class="hero-card">
+      <div class="ornament reveal d1">
+        <span class="h"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"/></svg>
+        <span class="h"></span>
+      </div>
+      <div class="hero-eyebrow reveal d2">~ Together with their families ~</div>
+      <div class="names-th reveal d2">ปรวรรษ &nbsp;<span style="color:var(--gold)">&amp;</span>&nbsp; ครินทร์ธร</div>
+      <div class="names-en reveal d3">Porawat <span class="amp">&amp;</span> Karinthorn</div>
+      <div class="hero-sub reveal d3">งานมงคลสมรส · Saturday · 12 December 2027</div>
+      <div class="reveal d4" style="margin-top:18px">
+        <span class="date-badge">
+          <span class="lbl">Date</span>
+          <span class="dot"></span>
+          <span class="num">12 · 12 · 27</span>
+        </span>
+      </div>
+      <div class="ornament reveal d5" style="margin-top:42px">
+        <span class="h"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="2"/><path d="M12 4 V8 M12 16 V20 M4 12 H8 M16 12 H20"/></svg>
+        <span class="h"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Countdown -->
+  <section class="section" id="sec-count">
+    <div class="count-wrap">
+      <div class="reveal d1 count-sub">~ counting the days ~</div>
+      <div class="reveal d1 count-title">นับถอยหลังสู่วันสำคัญ</div>
+      <div class="reveal d2 count-grid" id="countGrid" style="margin-top:36px">
+        <div class="cell"><span class="n" id="cd-d">000</span><span class="l">Days · วัน</span></div>
+        <div class="cell"><span class="n" id="cd-h">00</span><span class="l">Hours · ชม.</span></div>
+        <div class="cell"><span class="n" id="cd-m">00</span><span class="l">Mins · นาที</span></div>
+        <div class="cell"><span class="n" id="cd-s">00</span><span class="l">Secs · วินาที</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Venue -->
+  <section class="section" id="sec-venue">
+    <div class="venue-card reveal d1">
+      <h3>สถานที่จัดงาน · The Venue</h3>
+      <div class="v-en">Suwanna Riverside Chainat</div>
+      <div class="v-th">โรงแรม สุวรรณาริเวอร์ไซต์ชัยนาท</div>
+      <div class="v-addr">878 ซอย 7 ถนนริมแม่น้ำเจ้าพระยา<br>ต.บ้านกล้วย อ.เมือง จ.ชัยนาท 17000</div>
+      <div class="v-time"><span>17:00 – 22:00</span><span class="dot"></span><span>งานเลี้ยงฉลองมงคลสมรส</span></div>
+      <div>
+        <a class="map-btn" href="https://maps.app.goo.gl/9L7TzSBiwJ2FTMsL8" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          เปิดแผนที่ · Open Map
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: RSVP -->
+  <section class="section" id="sec-rsvp">
+    <div class="rsvp-bg"></div>
+    <div class="rsvp-card reveal d1">
+      <h3>ร่วมเป็นเกียรติในงาน</h3>
+      <div class="sub">กรุณายืนยันการเข้าร่วมงาน · Kindly RSVP</div>
+      <div class="field"><label for="rn">ชื่อ-นามสกุล *</label><input id="rn" type="text" placeholder="Full name" /></div>
+      <div class="field"><label for="rs">จำนวนที่นั่ง *</label><input id="rs" type="number" min="1" placeholder="Number of guests" /></div>
+      <div class="field"><label for="rp">เบอร์โทรศัพท์ *</label><input id="rp" type="tel" placeholder="Phone number" /></div>
+      <div class="field"><label for="rm">หมายเหตุ</label><textarea id="rm" placeholder="Message (optional)"></textarea></div>
+      <button class="submit-btn" id="rsvpBtn">ยืนยันการเข้าร่วม · CONFIRM 💌</button>
+    </div>
+  </section>
+
+  <!-- Section 5: Footer -->
+  <section class="section footer" id="sec-footer">
+    <div class="reveal d1">
+      <div class="monogram">Top <span class="amp">&amp;</span> Dream</div>
+      <div class="names">Porawat &amp; Karinthorn</div>
+      <div class="meta">12 December 2027 · สุวรรณาริเวอร์ไซด์ชัยนาท · Thailand</div>
+      <button class="save-btn" id="saveBtn">บันทึกรูปลงเครื่อง · SAVE IMAGE</button>
+      <div class="heart">~ with love ~</div>
+    </div>
+  </section>
+</div>
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+<script>
+(function(){
+  'use strict';
+
+  // ========= Config =========
+  const isMobile = window.innerWidth < 768;
+  const PETAL_COUNT = isMobile ? 10 : 22;
+  const DUST_COUNT = 60;
+  const SEG = isMobile ? 8 : 16;
+
+  // ========= Renderer / Scene / Camera =========
+  const canvas = document.getElementById('scene');
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:!isMobile, alpha:false});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.15;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0d0a06);
+  scene.fog = new THREE.FogExp2(0x0d0a06, 0.022);
+
+  const camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 200);
+  // Start position: just outside the doors looking in
+  camera.position.set(0, 4.5, 22);
+  camera.lookAt(0, 4.5, 0);
+
+  // ========= Lighting =========
+  const ambient = new THREE.AmbientLight(0xfff8f0, 0.35);
+  scene.add(ambient);
+
+  const dirLight = new THREE.DirectionalLight(0xffd080, 0.7);
+  dirLight.position.set(10, 20, 5);
+  dirLight.castShadow = true;
+  dirLight.shadow.mapSize.set(1024,1024);
+  dirLight.shadow.camera.near=1; dirLight.shadow.camera.far=80;
+  dirLight.shadow.camera.left=-30; dirLight.shadow.camera.right=30;
+  dirLight.shadow.camera.top=30; dirLight.shadow.camera.bottom=-30;
+  scene.add(dirLight);
+
+  // Behind-doors warm light (visible during landing)
+  const doorGlow = new THREE.PointLight(0xd4924a, 2.2, 40, 2);
+  doorGlow.position.set(0, 5, 8);
+  scene.add(doorGlow);
+
+  // Altar area light
+  const altarLight = new THREE.PointLight(0xfff5e6, 1.2, 30, 2);
+  altarLight.position.set(0, 6, -28);
+  scene.add(altarLight);
+
+  // Window-style spotlights (left/right)
+  function addWindowLight(x){
+    const sp = new THREE.SpotLight(0xd4924a, 0.6, 40, 0.42, 0.6, 1.5);
+    sp.position.set(x, 14, -10);
+    sp.target.position.set(x*0.3, 0, -10);
+    scene.add(sp); scene.add(sp.target);
+  }
+  addWindowLight(-14);
+  addWindowLight(14);
+
+  // ========= Materials =========
+  const matFloor = new THREE.MeshStandardMaterial({color:0x2a1a0e, roughness:0.7, metalness:0.08});
+  const matCeil  = new THREE.MeshStandardMaterial({color:0x1a1208, roughness:0.95, metalness:0.0, side:THREE.DoubleSide});
+  const matWall  = new THREE.MeshStandardMaterial({color:0x2c2416, roughness:0.92, metalness:0.0});
+  const matGold  = new THREE.MeshStandardMaterial({color:0xc9a84c, roughness:0.32, metalness:0.85, emissive:0x4a3a14, emissiveIntensity:0.25});
+  const matMarble= new THREE.MeshStandardMaterial({color:0xe8e0d0, roughness:0.4, metalness:0.1});
+  const matIvory = new THREE.MeshStandardMaterial({color:0xfdfaf6, roughness:0.7});
+  const matCream = new THREE.MeshStandardMaterial({color:0xf0ede6, roughness:0.55});
+  const matCharcoal = new THREE.MeshStandardMaterial({color:0x1a1a1a, roughness:0.55, metalness:0.15});
+  const matCandle = new THREE.MeshStandardMaterial({color:0xfdfaf6, roughness:0.5, emissive:0xff9944, emissiveIntensity:0.1});
+
+  const flowerMats = [
+    new THREE.MeshStandardMaterial({color:0xe8b4b8, roughness:0.6}),
+    new THREE.MeshStandardMaterial({color:0xfdfaf6, roughness:0.7}),
+    new THREE.MeshStandardMaterial({color:0x2d4a2d, roughness:0.7}),
+    new THREE.MeshStandardMaterial({color:0xd89090, roughness:0.65}),
+  ];
+
+  // ========= Environment — loaded from GLB =========
+  // The wedding_place GLB should ENCLOSE every other element along the long
+  // (Z) axis. Our existing layout spans roughly:
+  //   doors  ~ z = +16
+  //   altar  ~ z = -34
+  // …so the venue's long axis needs to cover ≈ 60 units of depth, and be
+  // wide/tall enough to contain the chairs (±5 X) and chandelier (y≈17).
+  const VENUE_FIT = {
+    // The model's LONG axis is scaled to cover this much along Z (aisle direction).
+    longAxisDepth: 64,
+    // Hard caps so the model isn't absurdly wide/tall if its source aspect is extreme.
+    maxWidth: 60,
+    maxHeight: 40,
+    centerZ: -12,        // recenter so doors stay just inside the entrance
+    yOffset: -0.05       // slight sink to avoid z-fighting with the carpet
+  };
+
+  const venueGroup = new THREE.Group();
+  scene.add(venueGroup);
+
+  // All procedural elements (doors, chairs, altar, petals, …) live in this
+  // group. Once the venue GLB loads we ray-cast to find its actual floor
+  // surface and lift the whole group so everything sits on it.
+  const procGroup = new THREE.Group();
+  scene.add(procGroup);
+
+  const loader = new THREE.GLTFLoader();
+  loader.load(
+    'assets/wedding_place.glb',
+    (gltf)=>{
+      const model = gltf.scene;
+
+      // Measure original bounds
+      const box = new THREE.Box3().setFromObject(model);
+      const size = new THREE.Vector3(); box.getSize(size);
+
+      // The model is wider than deep in its source orientation
+      // (29.6 × 7.7 × 12) — meaning its LONG axis is X, not Z.
+      // Rotate 90° around Y so the long axis aligns with the aisle (Z).
+      if(size.x > size.z){
+        model.rotation.y = Math.PI/2;
+      }
+
+      // Re-measure after rotation
+      let boxR = new THREE.Box3().setFromObject(model);
+      let sizeR = new THREE.Vector3(); boxR.getSize(sizeR);
+
+      // Scale: enclose the full aisle length.
+      // Pick the smaller of (depth fit) and the safety caps so the venue
+      // contains everything but doesn't blow past the camera near-plane.
+      let fit = VENUE_FIT.longAxisDepth / Math.max(0.0001, sizeR.z);
+      const wAfter = sizeR.x * fit;
+      const hAfter = sizeR.y * fit;
+      if(wAfter > VENUE_FIT.maxWidth)  fit = Math.min(fit, VENUE_FIT.maxWidth  / sizeR.x);
+      if(hAfter > VENUE_FIT.maxHeight) fit = Math.min(fit, VENUE_FIT.maxHeight / sizeR.y);
+      model.scale.setScalar(fit);
+
+      // Final bounds → ground it and center over the aisle
+      const box2 = new THREE.Box3().setFromObject(model);
+      const c2 = new THREE.Vector3(); box2.getCenter(c2);
+      const s2 = new THREE.Vector3(); box2.getSize(s2);
+      model.position.x += -c2.x;
+      model.position.y += -box2.min.y + VENUE_FIT.yOffset;
+      model.position.z += -c2.z + VENUE_FIT.centerZ;
+
+      // Shadows + soften env reflections
+      model.traverse((o)=>{
+        if(o.isMesh){
+          o.castShadow = true;
+          o.receiveShadow = true;
+          if(o.material){
+            if('envMapIntensity' in o.material) o.material.envMapIntensity = 0.8;
+            // Don't let two-sided transparent panes (glass, drapes) cull oddly
+            if(o.material.transparent && o.material.opacity < 0.99){
+              o.material.side = THREE.DoubleSide;
+            }
+          }
+        }
+      });
+
+      venueGroup.add(model);
+
+      // Detect the actual interior FLOOR surface of the venue.
+      // Strategy: cast rays down from above at several aisle positions,
+      // collect every hit, keep only those whose face normal points up
+      // (these are walkable surfaces), then take the LOWEST one — that's
+      // the floor (everything above it would be tables/altars/etc).
+      function findFloorY(targetModel){
+        const samples = [
+          [0, VENUE_FIT.centerZ],
+          [0, VENUE_FIT.centerZ + 10],
+          [0, VENUE_FIT.centerZ - 10],
+          [2, VENUE_FIT.centerZ],
+          [-2, VENUE_FIT.centerZ],
+        ];
+        const downY = new THREE.Vector3(0, -1, 0);
+        const tmpNormal = new THREE.Vector3();
+        let lowestUpHit = Infinity;
+        let anyHit = Infinity;
+
+        for(const [x, z] of samples){
+          const rc = new THREE.Raycaster(new THREE.Vector3(x, 80, z), downY);
+          const hits = rc.intersectObject(targetModel, true);
+          for(const h of hits){
+            if(h.point.y < anyHit) anyHit = h.point.y;
+            if(!h.face) continue;
+            tmpNormal.copy(h.face.normal).transformDirection(h.object.matrixWorld);
+            // upward-facing surface = walkable
+            if(tmpNormal.y > 0.6 && h.point.y < lowestUpHit){
+              lowestUpHit = h.point.y;
+            }
+          }
+        }
+        if(isFinite(lowestUpHit)) return lowestUpHit;
+        if(isFinite(anyHit)) return anyHit;
+        return 0;
+      }
+      const floorY = findFloorY(model);
+      procGroup.position.y = floorY + 1; //ปรับแก้ยกเก้าอี้และอื่นๆ
+
+      // Lift camera keyframes + initial camera to eye-level above the real floor
+      keyframes.forEach(kf => {
+        kf.pos[1]  += floorY;
+        kf.look[1] += floorY;
+      });
+      camera.position.y += floorY;
+
+      // Adjust lights to sit above the real floor
+      doorGlow.position.y   = floorY + 5;
+      altarLight.position.y = floorY + 6;
+
+      console.log('[Venue] loaded. Original:', size, '→ rotated:', sizeR, '→ scale:', fit, '→ final:', s2, '→ floorY:', floorY);
+    },
+    null,
+    (err)=>{
+      console.error('[Venue] failed to load wedding_place.glb', err);
+      const floor = new THREE.Mesh(new THREE.PlaneGeometry(60, 80), matFloor);
+      floor.rotation.x = -Math.PI/2;
+      floor.position.z = -20;
+      floor.receiveShadow = true;
+      scene.add(floor);
+    }
+  );
+
+  // ========= Doors =========
+  const doorGroup = new THREE.Group();
+  procGroup.add(doorGroup);
+
+  function makeDoor(side){
+    const g = new THREE.Group();
+    // Door panel
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(4, 10, 0.3), matCharcoal);
+    panel.castShadow = true;
+    panel.position.x = side * 2; // hinge at outer edge => panel extends inward from hinge
+    g.add(panel);
+    // Inset gold frame
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(3.2, 8.4, 0.05), matGold);
+    frame.position.set(side*2, 0, 0.18);
+    g.add(frame);
+    const frameInner = new THREE.Mesh(new THREE.BoxGeometry(2.8, 8, 0.05), matCharcoal);
+    frameInner.position.set(side*2, 0, 0.22);
+    g.add(frameInner);
+    // Handle
+    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.5, 12), matGold);
+    handle.rotation.z = Math.PI/2;
+    handle.position.set(side===-1? -0.4 : 0.4, 0, 0.25);
+    g.add(handle);
+    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 12), matGold);
+    knob.position.set(side===-1? -0.4 : 0.4, 0, 0.45);
+    g.add(knob);
+
+    // Position group: hinge at the outer edge (x = side*4 from center)
+    g.position.set(side * 4, 5, 16);
+    return g;
+  }
+  const doorL = makeDoor(-1);
+  const doorR = makeDoor(+1);
+  doorGroup.add(doorL, doorR);
+
+  // Door light crack glow plane (between doors before opening)
+  const crackGeo = new THREE.PlaneGeometry(0.3, 9.5);
+  const crackMat = new THREE.MeshBasicMaterial({color:0xffd080, transparent:true, opacity:0.85});
+  const crack = new THREE.Mesh(crackGeo, crackMat);
+  crack.position.set(0, 5, 16.2);
+  procGroup.add(crack);
+
+  // ========= Chandelier =========
+  const chandelier = new THREE.Group();
+  chandelier.position.set(0, 17, -25);
+  procGroup.add(chandelier);
+
+  // Hanging rod
+  const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 4, 8), matGold);
+  rod.position.y = -1;
+  chandelier.add(rod);
+  // Center mass
+  const centerOrb = new THREE.Mesh(new THREE.SphereGeometry(0.3, SEG, SEG), matGold);
+  centerOrb.position.y = -3;
+  chandelier.add(centerOrb);
+  // 3 rings
+  function makeRing(count, radius, y){
+    const ringGeo = new THREE.TorusGeometry(radius, 0.04, 8, 32);
+    const ring = new THREE.Mesh(ringGeo, matGold);
+    ring.position.y = y; ring.rotation.x = Math.PI/2;
+    chandelier.add(ring);
+    for(let i=0;i<count;i++){
+      const a = (i/count)*Math.PI*2;
+      const s = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), matGold);
+      s.position.set(Math.cos(a)*radius, y, Math.sin(a)*radius);
+      chandelier.add(s);
+      // tiny drop crystal
+      const c = new THREE.Mesh(new THREE.OctahedronGeometry(0.1), new THREE.MeshStandardMaterial({color:0xffe9b4, emissive:0xffd080, emissiveIntensity:0.6, roughness:0.2, metalness:0.4, transparent:true, opacity:0.9}));
+      c.position.set(Math.cos(a)*radius, y-0.5, Math.sin(a)*radius);
+      chandelier.add(c);
+    }
+  }
+  makeRing(6, 0.7, -3);
+  makeRing(10, 1.3, -3.6);
+  makeRing(14, 1.9, -4.2);
+
+  const chLight = new THREE.PointLight(0xffd080, 1.6, 28, 2);
+  chLight.position.y = -3.5;
+  chandelier.add(chLight);
+
+  // Lens-flare sprite at chandelier
+  function makeFlareTexture(){
+    const c = document.createElement('canvas'); c.width = c.height = 256;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(128,128,0,128,128,128);
+    g.addColorStop(0,'rgba(255,235,180,1)');
+    g.addColorStop(0.2,'rgba(255,210,140,.55)');
+    g.addColorStop(1,'rgba(255,200,120,0)');
+    ctx.fillStyle = g; ctx.fillRect(0,0,256,256);
+    const t = new THREE.CanvasTexture(c); t.needsUpdate=true; return t;
+  }
+  const flareTex = makeFlareTexture();
+  const flare = new THREE.Sprite(new THREE.SpriteMaterial({map:flareTex, transparent:true, opacity:0.6, depthWrite:false, blending:THREE.AdditiveBlending}));
+  flare.scale.set(4,4,1);
+  flare.position.y = -3.5;
+  chandelier.add(flare);
+
+  // ========= Aisle =========
+  // Carpet
+  const carpet = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 48), matIvory);
+  carpet.rotation.x = -Math.PI/2;
+  carpet.position.set(0, 0.02, -15);
+  carpet.receiveShadow = true;
+  procGroup.add(carpet);
+  // Gold edges
+  for(let s=-1;s<=1;s+=2){
+    const edge = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 48), matGold);
+    edge.rotation.x = -Math.PI/2;
+    edge.position.set(s*1.75, 0.03, -15);
+    procGroup.add(edge);
+  }
+
+  // Chairs + flowers
+  function makeChair(){
+    const g = new THREE.Group();
+    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.12, 0.9), matCream);
+    seat.position.y = 0.55; g.add(seat);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.0, 0.1), matCream);
+    back.position.set(0, 1.1, -0.4); g.add(back);
+    // 4 legs
+    for(let lx of [-0.4,0.4]) for(let lz of [-0.4,0.4]){
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.55, 0.08), matCream);
+      leg.position.set(lx, 0.27, lz); g.add(leg);
+    }
+    // small floral on back
+    const flower = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), flowerMats[Math.floor(Math.random()*flowerMats.length)]);
+    flower.position.set(0, 1.65, -0.35);
+    g.add(flower);
+    g.children.forEach(c=>c.castShadow=true);
+    return g;
+  }
+
+  function makeAisleFloral(){
+    const g = new THREE.Group();
+    const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 1.6, 8), matGold);
+    stand.position.y = 0.8; g.add(stand);
+    const cnt = 5 + Math.floor(Math.random()*3);
+    for(let i=0;i<cnt;i++){
+      const r = 0.18 + Math.random()*0.18;
+      const s = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), flowerMats[Math.floor(Math.random()*flowerMats.length)]);
+      s.position.set((Math.random()-0.5)*0.6, 1.6 + Math.random()*0.4, (Math.random()-0.5)*0.6);
+      g.add(s);
+    }
+    return g;
+  }
+
+  const ROWS = 8;
+  const ROW_GAP = 4.2;
+  for(let r=0;r<ROWS;r++){
+    const z = 8 - r*ROW_GAP;
+    // 2 chair clusters each side
+    for(let side of [-1, 1]){
+      for(let k=0;k<2;k++){
+        const ch = makeChair();
+        ch.position.set(side*(2.6 + k*1.2), 0, z);
+        ch.rotation.y = side===1 ? Math.PI : 0;
+        procGroup.add(ch);
+      }
+      // floral stand on aisle side
+      const f = makeAisleFloral();
+      f.position.set(side*1.9, 0, z);
+      procGroup.add(f);
+    }
+  }
+
+  // ========= Altar =========
+  const altar = new THREE.Group();
+  altar.position.set(0, 0, -34);
+  procGroup.add(altar);
+
+  // 3 stacked steps
+  const step1 = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 0.3, 32), matMarble);
+  step1.position.y = 0.15; altar.add(step1);
+  const step2 = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 0.3, 32), matMarble);
+  step2.position.y = 0.45; altar.add(step2);
+  const step3 = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 0.3, 32), matMarble);
+  step3.position.y = 0.75; altar.add(step3);
+
+  // Floral arch — two side pillars + curved top via torus
+  function makeArchPillar(x){
+    const g = new THREE.Group();
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 5, 12), new THREE.MeshStandardMaterial({color:0x3a2a18, roughness:0.85}));
+    trunk.position.y = 4; g.add(trunk);
+    // flower cluster top + cascading down
+    for(let i=0;i<26;i++){
+      const r = 0.2 + Math.random()*0.22;
+      const s = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), flowerMats[Math.floor(Math.random()*flowerMats.length)]);
+      const yPick = Math.random();
+      const y = yPick<0.6 ? (7 + Math.random()*1.4) : (3 + Math.random()*4);
+      s.position.set((Math.random()-0.5)*1.2, y, (Math.random()-0.5)*1.2);
+      g.add(s);
+    }
+    g.position.x = x;
+    return g;
+  }
+  altar.add(makeArchPillar(-3.6));
+  altar.add(makeArchPillar(3.6));
+
+  // Arch top — half-torus
+  const archTop = new THREE.Mesh(
+    new THREE.TorusGeometry(3.6, 0.25, 12, 32, Math.PI),
+    new THREE.MeshStandardMaterial({color:0x3a2a18, roughness:0.85})
+  );
+  archTop.position.set(0, 8, 0);
+  archTop.rotation.z = Math.PI; // arch opens downward
+  altar.add(archTop);
+  // flowers on top arch
+  for(let i=0;i<28;i++){
+    const a = Math.PI + (i/28)*Math.PI; // along upper half
+    const r = 3.6;
+    const s = new THREE.Mesh(new THREE.SphereGeometry(0.22 + Math.random()*0.16, 10, 8), flowerMats[Math.floor(Math.random()*flowerMats.length)]);
+    s.position.set(Math.cos(a)*r + (Math.random()-0.5)*0.5, 8 + Math.sin(a)*r*0.0 + (Math.random()-0.5)*0.6, (Math.random()-0.5)*0.5);
+    s.position.y = 8 + Math.sin(a-Math.PI)*r + (Math.random()-0.5)*0.4;
+    altar.add(s);
+  }
+
+  // Candles + flicker lights
+  const candleLights = [];
+  for(let i=0;i<6;i++){
+    const angle = (i/6)*Math.PI*2;
+    const cr = 2.2;
+    const candle = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.5, 8), matCandle);
+    candle.position.set(Math.cos(angle)*cr, 1.65, Math.sin(angle)*cr);
+    altar.add(candle);
+    // flame
+    const flame = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), new THREE.MeshBasicMaterial({color:0xffc874, transparent:true, opacity:0.95}));
+    flame.position.set(Math.cos(angle)*cr, 2.45, Math.sin(angle)*cr);
+    altar.add(flame);
+    const pl = new THREE.PointLight(0xff9944, 0.35, 5, 2);
+    pl.position.set(Math.cos(angle)*cr, 2.5, Math.sin(angle)*cr);
+    altar.add(pl);
+    candleLights.push({light:pl, flame, phase:i});
+  }
+
+  // 3D "Top & Dream" text plane via canvas
+  function makeTextPlane(){
+    const c = document.createElement('canvas'); c.width = 1024; c.height = 256;
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0,0,c.width,c.height);
+    // subtle glow
+    ctx.shadowColor = 'rgba(255,210,140,0.7)'; ctx.shadowBlur = 30;
+    ctx.fillStyle = '#ffd980';
+    ctx.font = 'italic 300 150px "Cormorant Garamond", serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('Top & Dream', 512, 130);
+    ctx.shadowBlur = 0;
+    // small underline ornament
+    ctx.fillStyle = '#c9a84c';
+    ctx.fillRect(380, 215, 264, 1.5);
+    ctx.beginPath(); ctx.arc(512, 215, 4, 0, Math.PI*2); ctx.fill();
+    const tex = new THREE.CanvasTexture(c); tex.needsUpdate = true;
+    return tex;
+  }
+  const textTex = makeTextPlane();
+  const textMat = new THREE.MeshBasicMaterial({map:textTex, transparent:true, depthWrite:false});
+  const textMesh = new THREE.Mesh(new THREE.PlaneGeometry(8, 2), textMat);
+  textMesh.position.set(0, 10.5, -34);
+  procGroup.add(textMesh);
+
+  // ========= Petals =========
+  function makePetalTex(){
+    const c = document.createElement('canvas'); c.width = c.height = 128;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(64,64,5,64,64,60);
+    g.addColorStop(0,'rgba(255,230,232,1)');
+    g.addColorStop(0.5,'rgba(232,180,184,.9)');
+    g.addColorStop(1,'rgba(180,110,114,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.ellipse(64,64,30,55,0,0,Math.PI*2);
+    ctx.fill();
+    const t = new THREE.CanvasTexture(c); t.needsUpdate = true; return t;
+  }
+  const petalTex = makePetalTex();
+  const petalMat = new THREE.MeshBasicMaterial({map:petalTex, transparent:true, side:THREE.DoubleSide, depthWrite:false});
+  const petals = [];
+  for(let i=0;i<PETAL_COUNT;i++){
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.55), petalMat);
+    p.position.set((Math.random()-0.5)*22, Math.random()*16, -5 - Math.random()*45);
+    p.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+    p.userData.spinX = (Math.random()-0.5)*0.02;
+    p.userData.spinZ = (Math.random()-0.5)*0.03;
+    p.userData.driftAmp = 0.5 + Math.random()*0.8;
+    p.userData.phase = Math.random()*Math.PI*2;
+    procGroup.add(p);
+    petals.push(p);
+  }
+
+  // ========= Dust =========
+  const dustGeo = new THREE.BufferGeometry();
+  const dustPos = new Float32Array(DUST_COUNT*3);
+  for(let i=0;i<DUST_COUNT;i++){
+    dustPos[i*3]   = (Math.random()-0.5)*24;
+    dustPos[i*3+1] = Math.random()*16;
+    dustPos[i*3+2] = -Math.random()*55 + 5;
+  }
+  dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+  const dustMat = new THREE.PointsMaterial({color:0xffe6c0, size:0.08, transparent:true, opacity:0.45, depthWrite:false, blending:THREE.AdditiveBlending});
+  const dust = new THREE.Points(dustGeo, dustMat);
+  procGroup.add(dust);
+
+  // ========= Camera Journey =========
+  // Keyframes: from doors → through hall → toward altar → resting orbit
+  const keyframes = [
+    {t:0,    pos:[0, 4.5, 22],   look:[0, 4.5, 0]},     // outside doors
+    {t:1.6,  pos:[0, 4.2, 12],   look:[0, 5.5, -10]},   // just past doors, chandelier visible
+    {t:3.4,  pos:[0, 4.0, 2],    look:[0, 4.5, -20]},   // mid-aisle, chandelier overhead
+    {t:5.2,  pos:[0, 3.8, -12],  look:[0, 5.0, -32]},   // approach altar
+    {t:7.2,  pos:[0, 3.6, -22],  look:[0, 5.5, -34]},   // closer
+    {t:8.4,  pos:[0, 4.2, -25],  look:[0, 5.5, -34]},   // resting
+  ];
+
+  let journeyStarted = false;
+  let journeyDone = false;
+  let journeyStartTime = 0;
+
+  function getKeyframe(t){
+    if(t <= keyframes[0].t) return {pos:keyframes[0].pos, look:keyframes[0].look};
+    for(let i=0;i<keyframes.length-1;i++){
+      const a = keyframes[i], b = keyframes[i+1];
+      if(t >= a.t && t <= b.t){
+        const u = (t - a.t)/(b.t - a.t);
+        const e = u<.5 ? 2*u*u : 1 - Math.pow(-2*u+2,2)/2; // ease-in-out
+        return {
+          pos:[
+            a.pos[0]+(b.pos[0]-a.pos[0])*e,
+            a.pos[1]+(b.pos[1]-a.pos[1])*e,
+            a.pos[2]+(b.pos[2]-a.pos[2])*e,
+          ],
+          look:[
+            a.look[0]+(b.look[0]-a.look[0])*e,
+            a.look[1]+(b.look[1]-a.look[1])*e,
+            a.look[2]+(b.look[2]-a.look[2])*e,
+          ]
+        };
+      }
+    }
+    return {pos:keyframes[keyframes.length-1].pos, look:keyframes[keyframes.length-1].look};
+  }
+
+  // Door open animation
+  let doorOpenTime = -1;
+  const DOOR_OPEN_DUR = 1.6;
+  const DOOR_OPEN_ANGLE = Math.PI*0.55;
+
+  function updateDoors(time){
+    if(doorOpenTime < 0) return;
+    const t = (time - doorOpenTime)/DOOR_OPEN_DUR;
+    const u = Math.min(1, Math.max(0, t));
+    const e = 1 - Math.pow(1-u, 3);
+    doorL.rotation.y = -DOOR_OPEN_ANGLE * e;
+    doorR.rotation.y =  DOOR_OPEN_ANGLE * e;
+    // crack glow grows quickly then fades as doors are wide open
+    crackMat.opacity = Math.max(0, 0.85 * (1-u));
+    if(u >= 1 && !journeyStarted){
+      journeyStarted = true;
+      journeyStartTime = time;
+    }
+  }
+
+  function updateCamera(time){
+    const floorOff = procGroup.position.y; // 0 before GLB loads, floorY after
+    if(!journeyStarted){
+      // gentle idle drift at door
+      const idle = Math.sin(time*0.4)*0.05;
+      camera.position.set(idle, floorOff + 4.5 + idle*0.4, 22);
+      camera.lookAt(0, floorOff + 4.5, 0);
+      return;
+    }
+    const jT = time - journeyStartTime;
+    const kfEnd = keyframes[keyframes.length-1].t;
+    if(jT < kfEnd){
+      const kf = getKeyframe(jT);
+      camera.position.set(kf.pos[0], kf.pos[1], kf.pos[2]);
+      camera.lookAt(kf.look[0], kf.look[1], kf.look[2]);
+    }else{
+      if(!journeyDone){
+        journeyDone = true;
+        // unlock scrolling
+        document.body.style.overflow = 'auto';
+        document.getElementById('vignette').classList.add('lifted');
+        startReveals();
+      }
+      // resting orbit around altar
+      const orbitT = (jT - kfEnd)*0.15;
+      const orbitFloor = procGroup.position.y;
+      camera.position.set(
+        Math.sin(orbitT)*2.2,
+        orbitFloor + 4.2 + Math.sin(orbitT*0.7)*0.15,
+        -25 + Math.cos(orbitT)*0.6
+      );
+      camera.lookAt(0, orbitFloor + 5.5, -34);
+    }
+  }
+
+  // ========= Reveal observer =========
+  function startReveals(){
+    const els = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    },{threshold:0.18});
+    els.forEach(el=>io.observe(el));
+  }
+
+  // ========= Door click handler =========
+  const doorOverlay = document.getElementById('doorOverlay');
+  function enterHall(){
+    if(doorOpenTime >= 0) return;
+    doorOverlay.classList.add('hide');
+    const t = clock.getElapsedTime();
+    doorOpenTime = t;
+    // hide door-glow point light shortly after open
+    setTimeout(()=>{ doorGlow.intensity = 0.6; }, 1600);
+  }
+  doorOverlay.addEventListener('click', enterHall);
+  doorOverlay.addEventListener('touchstart', enterHall, {passive:true});
+
+  // Lock scroll initially
+  document.body.style.overflow = 'hidden';
+
+  // ========= UI handlers =========
+  const audio = document.getElementById('bgAudio');
+  const musicBtn = document.getElementById('musicBtn');
+  let musicOn = false;
+  musicBtn.addEventListener('click', ()=>{
+    musicOn = !musicOn;
+    musicBtn.textContent = musicOn ? '♫' : '♪';
+    if(audio.src){
+      if(musicOn) audio.play().catch(()=>{});
+      else audio.pause();
+    }else{
+      // no source wired — visual toggle only
+    }
+  });
+
+  const topBtn = document.getElementById('topBtn');
+  window.addEventListener('scroll', ()=>{
+    if(window.scrollY > 300) topBtn.classList.add('show');
+    else topBtn.classList.remove('show');
+  });
+  topBtn.addEventListener('click', ()=>{
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+
+  document.getElementById('rsvpBtn').addEventListener('click', ()=>{
+    const name = document.getElementById('rn').value.trim();
+    const seats = document.getElementById('rs').value.trim();
+    const phone = document.getElementById('rp').value.trim();
+    const note = document.getElementById('rm').value.trim();
+    console.log('[RSVP]', {name, seats, phone, note});
+    const btn = document.getElementById('rsvpBtn');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ ขอบคุณค่ะ · THANK YOU';
+    btn.style.background = 'linear-gradient(180deg,#2a5a3a,#1a3a24)';
+    btn.style.color = '#fdfaf6';
+    setTimeout(()=>{ btn.innerHTML = orig; btn.style.background=''; btn.style.color=''; }, 3000);
+  });
+  document.getElementById('saveBtn').addEventListener('click', ()=>{
+    console.log('[Save Image] stub');
+    alert('การบันทึกรูปภาพจะพร้อมในเร็วๆ นี้\nScreenshot feature coming soon.');
+  });
+
+  // ========= Countdown =========
+  const TARGET = new Date('2027-12-12T17:00:00+07:00').getTime();
+  const cdEls = {d:document.getElementById('cd-d'),h:document.getElementById('cd-h'),m:document.getElementById('cd-m'),s:document.getElementById('cd-s')};
+  const last = {d:null,h:null,m:null,s:null};
+  function pad(n,len){ return String(Math.max(0,n)).padStart(len,'0'); }
+  function tickCountdown(){
+    const diff = Math.max(0, TARGET - Date.now());
+    const sec = Math.floor(diff/1000);
+    const d = Math.floor(sec/86400);
+    const h = Math.floor((sec%86400)/3600);
+    const m = Math.floor((sec%3600)/60);
+    const s = sec%60;
+    const next = {d:pad(d,3),h:pad(h,2),m:pad(m,2),s:pad(s,2)};
+    ['d','h','m','s'].forEach(k=>{
+      if(next[k] !== last[k]){
+        cdEls[k].textContent = next[k];
+        cdEls[k].classList.add('flip');
+        setTimeout(()=>cdEls[k].classList.remove('flip'), 80);
+        last[k] = next[k];
+      }
+    });
+  }
+  tickCountdown();
+  setInterval(tickCountdown, 1000);
+
+  // ========= Resize =========
+  window.addEventListener('resize', ()=>{
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  // ========= Animation Loop =========
+  const clock = new THREE.Clock();
+  function animate(){
+    requestAnimationFrame(animate);
+    const time = clock.getElapsedTime();
+    const delta = clock.getDelta();
+
+    // chandelier rotation
+    chandelier.rotation.y += 0.12 * delta;
+
+    // candle flicker
+    candleLights.forEach((c,i)=>{
+      const v = 0.28 + 0.12*Math.sin(time*7 + c.phase) + 0.05*Math.sin(time*13 + c.phase*2);
+      c.light.intensity = v;
+      c.flame.scale.setScalar(1 + 0.15*Math.sin(time*9 + c.phase));
+    });
+
+    // floating text bob
+    textMesh.position.y = 10.5 + Math.sin(time*0.9)*0.12;
+
+    // petals drift
+    for(const p of petals){
+      p.position.y -= 0.6 * delta;
+      p.position.x += Math.sin(time + p.userData.phase) * p.userData.driftAmp * delta;
+      p.rotation.z += p.userData.spinZ;
+      p.rotation.x += p.userData.spinX;
+      if(p.position.y < -1){
+        p.position.y = 15 + Math.random()*2;
+        p.position.x = (Math.random()-0.5)*22;
+        p.position.z = -5 - Math.random()*45;
+      }
+    }
+
+    // dust drift upward
+    const arr = dustGeo.attributes.position.array;
+    for(let i=0;i<DUST_COUNT;i++){
+      arr[i*3+1] += 0.06 * delta;
+      arr[i*3] += Math.sin(time*0.3 + i) * 0.002;
+      if(arr[i*3+1] > 17){
+        arr[i*3+1] = 0;
+        arr[i*3] = (Math.random()-0.5)*24;
+      }
+    }
+    dustGeo.attributes.position.needsUpdate = true;
+
+    // door + camera
+    updateDoors(time);
+    updateCamera(time);
+
+    // chandelier flare scale with distance
+    const dist = camera.position.distanceTo(chandelier.position);
+    flare.scale.setScalar(Math.max(1.5, 6 - dist*0.05));
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // safety: if user doesn't click, after 6s pulse the cue brighter
+  // (handled by CSS infinite pulse — nothing further needed)
+})();
+</script>
+</body>
+</html>
